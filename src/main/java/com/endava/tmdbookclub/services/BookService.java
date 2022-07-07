@@ -18,30 +18,41 @@ public class BookService {
     @Autowired
     private UserRepository userRepository;
 
-    public List<Book> getAllBooks(){
+    public List<Book> getAllBooks() {
         return bookRepository.findAll();
     }
 
-    public Book getBookById(Integer id){
+    public Book getBookById(Integer id) {
         return bookRepository.findById(id).get();
     }
 
-    public Book addBook(Book book){
+    public Book addBook(Integer user_id, Book book) {
+        if (
+                bookRepository.findAll().stream()
+                        .filter(b -> b.getTitle().equals(book.getTitle()) && b.getAuthor().equals(book.getAuthor()))
+                        .findFirst().isEmpty()
+        ) {
+            addSingleBook(book);
+            return BookGetsOwner(book.getBook_id(), user_id);
+        } else {
+            Book bookInTable = bookRepository.findAll().stream()
+                    .filter(b -> b.getTitle().equals(book.getTitle()) && b.getAuthor().equals(book.getAuthor()))
+                    .findFirst().get();
+
+            return BookGetsOwner(bookInTable.getBook_id(), user_id);
+        }
+    }
+
+    public Book addSingleBook(Book book){
         return bookRepository.saveAndFlush(book);
     }
 
-    public User addBookToSpecificUser(Book book, Integer id){
-        try {
-            User temporaryUser = userRepository.findById(id).get();
-            List<Book> newListOfBooks = temporaryUser.getBooks();
-            newListOfBooks.add(book);
-            temporaryUser.setBooks(newListOfBooks);
+    public Book BookGetsOwner(Integer book_id, Integer user_id) {
+        User user = userRepository.findById(user_id).get();
+        Book book = bookRepository.findById(book_id).get();
 
-            return temporaryUser;
-        }catch (NullPointerException npe){
-            System.out.println("User with specified ID doesn't exist\n");
-        }
+        book.addOwner(user);
 
-        return userRepository.findById(id).get();
+        return bookRepository.saveAndFlush(book);
     }
 }

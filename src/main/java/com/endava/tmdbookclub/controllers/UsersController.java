@@ -1,6 +1,7 @@
 package com.endava.tmdbookclub.controllers;
 
 import com.endava.tmdbookclub.Requests.UserRequest;
+import com.endava.tmdbookclub.models.Book;
 import com.endava.tmdbookclub.models.User;
 import com.endava.tmdbookclub.repositories.UserRepository;
 import com.endava.tmdbookclub.services.UserService;
@@ -17,7 +18,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 @RestController
-@RequestMapping("tables/users")
+@RequestMapping("/users")
 public class UsersController {
     @Autowired
     private UserService userService;
@@ -33,21 +34,10 @@ public class UsersController {
         return userService.getUserByID(id);
     }
 
-
     @PostMapping("/create_user")
     public User createUser(@RequestBody User user){
         return userService.createUser(user);
     }
 
-    @PostMapping("add_user")
-    public User addUser(@RequestBody UserRequest userRequest){
-        return userService.addUser(userRequest);
-    }
-
-
-    @RequestMapping(value = "/delete/{id}", method = RequestMethod.DELETE)
-    public void delete(@PathVariable Integer id){
-        userService.deleteUserById(id);
-    }
 
 }

@@ -10,31 +10,32 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("tables/books")
+@RequestMapping("/books")
 public class BooksController {
     @Autowired
     private BookService bookService;
 
     @GetMapping
-    public List<Book> getAll(){
-
-        return bookService.getAllBooks();
-    }
+    public List<Book> getAll() {
+        return bookService.getAllBooks();}
 
     @GetMapping
     @RequestMapping("{id}")
-    public Book getBookById(@PathVariable Integer id){
-
-        return bookService.getBookById(id);
-    }
+    public Book getBookById(@PathVariable Integer id) {
+        return bookService.getBookById(id);}
 
     @PostMapping("/add")
-    public Book addBook(@RequestBody Book book){
-        return bookService.addBook(book);
+    public Book addSingleBook(@RequestBody Book book){
+        return bookService.addSingleBook(book);
+    }
+    @PostMapping("/{id}/add")
+    public Book addBook(@PathVariable Integer id,@RequestBody Book book) {
+        return bookService.addBook(id,book);
     }
 
-    @PostMapping("/add_books/{id}")
-    public User addBookToTheUser(@RequestBody Book book, @PathVariable Integer id){
-        return bookService.addBookToSpecificUser(book,id);
+    @PutMapping("/{book_id}/user/{user_id}")
+    public Book BookGetsOwner(@PathVariable Integer book_id, @PathVariable Integer user_id) {
+        return bookService.BookGetsOwner(book_id, user_id);
     }
+
 }
