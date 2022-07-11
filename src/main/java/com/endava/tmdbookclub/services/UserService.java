@@ -1,6 +1,5 @@
 package com.endava.tmdbookclub.services;
 
-import com.endava.tmdbookclub.Requests.UserRequest;
 import com.endava.tmdbookclub.models.Book;
 import com.endava.tmdbookclub.models.User;
 import com.endava.tmdbookclub.repositories.BookRepository;

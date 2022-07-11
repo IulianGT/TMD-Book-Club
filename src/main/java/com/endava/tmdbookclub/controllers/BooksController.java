@@ -1,13 +1,12 @@
 package com.endava.tmdbookclub.controllers;
 
 import com.endava.tmdbookclub.models.Book;
-import com.endava.tmdbookclub.models.User;
-import com.endava.tmdbookclub.repositories.BookRepository;
 import com.endava.tmdbookclub.services.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/books")
