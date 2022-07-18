@@ -31,6 +31,10 @@ public class Book {
     @JsonIgnoreProperties("books")
     private Set<User> users = new HashSet<>();
 
+    @OneToMany(mappedBy = "who_rented")
+
+    private Set<Renting> which_renter = new HashSet<>();
+
     public void addOwner(User user) {
     users.add(user);
     }

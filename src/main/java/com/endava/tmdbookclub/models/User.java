@@ -1,13 +1,13 @@
 package com.endava.tmdbookclub.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity(name = "users")
@@ -25,9 +25,13 @@ public class User {
     private String username;
     private String password;
 
-    @JsonIgnoreProperties("users")
+    @JsonIgnoreProperties({"users","which_renter"})
     @ManyToMany(mappedBy = "users")
     private Set<Book> books = new HashSet<>();
+
+    @OneToMany(mappedBy = "who_rented")
+    @JsonIgnoreProperties({"extended","who_rented","date_of_renting","renting_id"})
+    private Set<Renting> which_books = new HashSet<>();
 
     public Integer getUser_id() {
         return user_id;
