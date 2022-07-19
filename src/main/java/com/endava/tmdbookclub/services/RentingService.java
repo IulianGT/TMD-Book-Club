@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RentingService {
@@ -31,14 +32,21 @@ public class RentingService {
         return rentingRepository.findAll();
     }
 
-    public Renting getRentingByBookAndUser(Integer book_id, Integer user_id) {
-        User actualUser;
+    public List<Renting> findAllOnGoingRentings(){
+        if (rentingRepository.findAll().isEmpty())
+            throw new ApiRequestException("There are no rentings yet");
+        return rentingRepository.findAll().stream().filter(renting -> renting.getWhen_to_return().isAfter(LocalDate.now())).collect(Collectors.toList());
+    }
+
+
+    public Renting getRentingByBookAndRenter(Integer book_id, Integer user_id) {
+        User actualRenter;
         Book actualBook;
         Renting actualRenting;
         if (userRepository.findById(user_id).isEmpty()) {
             throw new ApiRequestException("The user does not exist.");
         }
-        actualUser = userRepository.findById(user_id).get();
+        actualRenter = userRepository.findById(user_id).get();
 
         if (bookRepository.findById(book_id).isEmpty()) {
             throw new ApiRequestException("This book does not exist");
@@ -47,7 +55,7 @@ public class RentingService {
 
         if (rentingRepository.findAll().stream()
                 .anyMatch(renting ->
-                        renting.getWho_rented().equals(actualUser)
+                        renting.getWho_rented().equals(actualRenter)
                                 &&
                                 renting.getBook_rented().equals(actualBook)
                                 &&
@@ -55,7 +63,7 @@ public class RentingService {
                 )) {
             return actualRenting = rentingRepository.findAll().stream()
                     .filter(renting ->
-                            renting.getWho_rented().equals(actualUser)
+                            renting.getWho_rented().equals(actualRenter)
                                     &&
                                     renting.getBook_rented().equals(actualBook)
                                     &&
@@ -79,7 +87,7 @@ public class RentingService {
         }
         actualBook = bookRepository.findById(book_id).get();
 
-        if (getRentingByBookAndUser(book_id, user_id) != null) {
+        if (getRentingByBookAndRenter(book_id, user_id) != null) {
             throw new ApiRequestException("This renting is still going. You may have extended");
         }
 
@@ -113,8 +121,7 @@ public class RentingService {
                 .noneMatch(u -> !u.equals(actualUser) &&
                         rentingRepository.findAll().stream()
                                 .anyMatch(r -> !r.getOwner_id().equals(u.getUser_id())))
-        )
-        {
+        ) {
             throw new ApiRequestException("There are no owners of this book available.");
         } else {
             renting.setOwner_id(

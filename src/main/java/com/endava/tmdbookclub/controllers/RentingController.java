@@ -34,5 +34,10 @@ public class RentingController {
         return rentingService.findAll();
     }
 
+    @GetMapping("/on_going")
+    public List<Renting> findAllOnGoingRentings(){
+        return rentingService.findAllOnGoingRentings();
+    }
+
 }
 

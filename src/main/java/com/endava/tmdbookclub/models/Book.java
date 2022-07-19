@@ -28,11 +28,10 @@ public class Book {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "book_id")
     )
-    @JsonIgnoreProperties("books")
+    @JsonIgnoreProperties({"books","which_books"})
     private Set<User> users = new HashSet<>();
 
-    @OneToMany(mappedBy = "who_rented")
-
+    @OneToMany(mappedBy = "book_rented")
     private Set<Renting> which_renter = new HashSet<>();
 
     public void addOwner(User user) {
