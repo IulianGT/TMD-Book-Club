@@ -23,17 +23,57 @@ public class UserService {
     @Autowired
     private RentingRepository rentingRepository;
 
+
     public List<User> getAllUsers() {
+        if(userRepository.findAll().isEmpty())
+            throw new ApiRequestException("There are no users registered.");
+
         return userRepository.findAll();
     }
 
     public User getUserByID(Integer id) {
+
+        if(userRepository.findById(id).isEmpty())
+            throw new ApiRequestException("There is no user with this id registered.");
         return userRepository.findById(id).get();
     }
 
-
     public User createUser(User user) {
         return userRepository.saveAndFlush(user);
+    }
+
+    public List<Renting> findAllBooksThatYouHaveRentedToSomeone(Integer user_id){
+        if(userRepository.findById(user_id).isEmpty())
+            throw new ApiRequestException("This user doesn't exist");
+
+        User user = userRepository.findById(user_id).get();
+
+        if(user.getBooks().isEmpty())
+            throw new ApiRequestException("You don't have any books");
+
+        if(rentingRepository.findAll().stream()
+                .filter(renting -> renting.getOwner_id().equals(user.getUser_id()))
+                .findFirst().isEmpty())
+            throw new ApiRequestException("No books have been borrowed from you");
+
+        return rentingRepository.findAll().stream()
+                .filter(renting -> renting.getOwner_id().equals(user.getUser_id()))
+                .collect(Collectors.toList());
+    }
+
+    public List<Renting> findAllBooksYouHaveToReturnToSomeone(Integer user_id){
+        if(userRepository.findById(user_id).isEmpty())
+            throw new ApiRequestException("This user doesn't exist");
+
+        User user = userRepository.findById(user_id).get();
+        if(user.getWhich_books().stream()
+                .filter(renting -> renting.getWhen_to_return().isAfter(LocalDate.now())).findFirst().isEmpty())
+            throw new ApiRequestException("You dont have books that need to be returned");
+
+        return user.getWhich_books().stream()
+                .filter(renting -> renting.getWhen_to_return().isAfter(LocalDate.now()))
+                .collect(Collectors.toList());
+
     }
 
     public LocalDate whenToReturnSpecifiedBook(Integer user_id, Integer book_id) {
@@ -50,34 +90,6 @@ public class UserService {
         return userRepository.findById(user_id).get().getWhich_books().stream()
                 .filter(renting -> renting.getBook_rented().equals(bookRepository.findById(book_id).get()))
                 .findFirst().get().getWhen_to_return();
-    }
-
-    public List<Renting> findAllBooksThatYouHaveBorrowed(Integer user_id){
-        if(userRepository.findById(user_id).isEmpty())
-            throw new ApiRequestException("This user doesn't exist");
-        User user = userRepository.findById(user_id).get();
-        if(user.getBooks().isEmpty())
-            throw new ApiRequestException("You dont have any books added");
-        if(rentingRepository.findAll().stream().filter(renting -> renting.getOwner_id().equals(user.getUser_id())).findFirst().isEmpty())
-            throw new ApiRequestException("No books have been borrowed from you");
-
-        return rentingRepository.findAll().stream()
-                .filter(renting -> renting.getOwner_id().equals(user.getUser_id()))
-                .collect(Collectors.toList());
-    }
-
-    public List<Renting> findAllBooksYouHaveToReturn(Integer user_id){
-        if(userRepository.findById(user_id).isEmpty())
-            throw new ApiRequestException("This user doesn't exist");
-        User user = userRepository.findById(user_id).get();
-        if(user.getWhich_books().stream()
-                .filter(renting -> renting.getWhen_to_return().isAfter(LocalDate.now())).findFirst().isEmpty())
-            throw new ApiRequestException("You dont have books that need returned");
-
-        return user.getWhich_books().stream()
-                .filter(renting -> renting.getWhen_to_return().isAfter(LocalDate.now()))
-                .collect(Collectors.toList());
-
     }
 
 }

@@ -38,12 +38,12 @@ public class UsersController {
 
     @GetMapping("/{user_id}/books_rented")
     public List<Renting> findAllTheBooksThatYouHaveBorrowed(@PathVariable Integer user_id) {
-        return userService.findAllBooksThatYouHaveBorrowed(user_id);
+        return userService.findAllBooksThatYouHaveRentedToSomeone(user_id);
     }
 
     @GetMapping("/{user_id}/books_to_return")
     public List<Renting> findAllBooksYouHaveToReturn(@PathVariable Integer user_id) {
-        return userService.findAllBooksYouHaveToReturn(user_id);
+        return userService.findAllBooksYouHaveToReturnToSomeone(user_id);
     }
 }
 

@@ -14,6 +14,17 @@ public class RentingController {
     @Autowired
     private RentingService rentingService;
 
+
+    @GetMapping
+    public List<Renting> findALl() {
+        return rentingService.findAll();
+    }
+
+    @GetMapping("/on_going")
+    public List<Renting> findAllOnGoingRentings(){
+        return rentingService.findAllOnGoingRentings();
+    }
+
     @PutMapping("/{user_id}/Rents/{book_id}_for_{period}")
     public Renting rentABook(
             @PathVariable Integer user_id,
@@ -29,15 +40,7 @@ public class RentingController {
         return rentingService.extendPeriodOfARentedBook(user_id, book_id, period);
     }
 
-    @GetMapping
-    public List<Renting> findALl() {
-        return rentingService.findAll();
-    }
 
-    @GetMapping("/on_going")
-    public List<Renting> findAllOnGoingRentings(){
-        return rentingService.findAllOnGoingRentings();
-    }
 
 }
 

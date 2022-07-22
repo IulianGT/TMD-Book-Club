@@ -26,68 +26,36 @@ public class RentingService {
     @Autowired
     private BookRepository bookRepository;
 
+    @Autowired
+    private BookService bookService;
+
     public List<Renting> findAll() {
         if (rentingRepository.findAll().isEmpty())
             throw new ApiRequestException("There are no rentings yet");
+
         return rentingRepository.findAll();
     }
 
-    public List<Renting> findAllOnGoingRentings(){
+    public List<Renting> findAllOnGoingRentings() {
         if (rentingRepository.findAll().isEmpty())
             throw new ApiRequestException("There are no rentings yet");
+
         return rentingRepository.findAll().stream().filter(renting -> renting.getWhen_to_return().isAfter(LocalDate.now())).collect(Collectors.toList());
     }
 
 
-    public Renting getRentingByBookAndRenter(Integer book_id, Integer user_id) {
-        User actualRenter;
-        Book actualBook;
-        Renting actualRenting;
-        if (userRepository.findById(user_id).isEmpty()) {
-            throw new ApiRequestException("The user does not exist.");
-        }
-        actualRenter = userRepository.findById(user_id).get();
-
-        if (bookRepository.findById(book_id).isEmpty()) {
-            throw new ApiRequestException("This book does not exist");
-        }
-        actualBook = bookRepository.findById(book_id).get();
-
-        if (rentingRepository.findAll().stream()
-                .anyMatch(renting ->
-                        renting.getWho_rented().equals(actualRenter)
-                                &&
-                                renting.getBook_rented().equals(actualBook)
-                                &&
-                                LocalDate.now().isBefore(renting.getWhen_to_return())
-                )) {
-            return actualRenting = rentingRepository.findAll().stream()
-                    .filter(renting ->
-                            renting.getWho_rented().equals(actualRenter)
-                                    &&
-                                    renting.getBook_rented().equals(actualBook)
-                                    &&
-                                    LocalDate.now().isBefore(renting.getWhen_to_return())
-                    ).findFirst().get();
-        }
-
-        return null;
-    }
-
     public Renting someoneRentsABook(Integer user_id, Integer book_id, Integer period) {
-        User actualUser;
-        Book actualBook;
         if (userRepository.findById(user_id).isEmpty()) {
             throw new ApiRequestException("The user does not exist.");
         }
-        actualUser = userRepository.findById(user_id).get();
+        User actualUser = userRepository.findById(user_id).get();
 
         if (bookRepository.findById(book_id).isEmpty()) {
             throw new ApiRequestException("This book does not exist");
         }
-        actualBook = bookRepository.findById(book_id).get();
+        Book actualBook = bookRepository.findById(book_id).get();
 
-        if (getRentingByBookAndRenter(book_id, user_id) != null) {
+        if (getOnGoingRentingByBookAndRenter(book_id, user_id) != null) {
             throw new ApiRequestException("This renting is still going. You may have extended");
         }
 
@@ -96,7 +64,9 @@ public class RentingService {
 
         if (period > 4 || period < 1) {
             throw new ApiRequestException("Not a valid period to chose from.");
-        } else if (period == 4) {
+        }
+
+        if (period == 4) {
             renting.setWhen_to_return(
                     LocalDate.now().plusMonths(1));
         } else {
@@ -108,29 +78,48 @@ public class RentingService {
         renting.setBook_rented(actualBook);
         renting.setWho_rented(actualUser);
 
-        if (rentingRepository.findAll().isEmpty()) {
-            if (actualBook.getUsers().stream()
-                    .anyMatch(user -> !user.equals(actualUser)))
-                renting.setOwner_id(
-                        actualBook.getUsers().stream().findFirst().get().getUser_id()
+        if (!bookService.isThisBookAvailableForUser(book_id,user_id))
+                throw new ApiRequestException("There are no owners of this book available");
+
+        renting.setOwner_id(
+                        actualBook.getUsers().stream()
+                                .filter( owner -> !owner.getUser_id().equals(user_id))
+                                .findFirst().get().getUser_id()
                 );
-            else {
-                throw new ApiRequestException("you can't rent your own book");
-            }
-        } else if (actualBook.getUsers().stream()
-                .noneMatch(u -> !u.equals(actualUser) &&
-                        rentingRepository.findAll().stream()
-                                .anyMatch(r -> !r.getOwner_id().equals(u.getUser_id())))
-        ) {
-            throw new ApiRequestException("There are no owners of this book available.");
-        } else {
-            renting.setOwner_id(
-                    actualBook.getUsers().stream()
-                            .filter(u -> rentingRepository.findAll().stream()
-                                    .anyMatch(r -> !r.getOwner_id().equals(u.getUser_id()))
-                            ).findFirst().get().getUser_id());
-        }
+
         return rentingRepository.saveAndFlush(renting);
+    }
+
+    public Renting getOnGoingRentingByBookAndRenter(Integer book_id, Integer user_id) {
+        if (userRepository.findById(user_id).isEmpty()) {
+            throw new ApiRequestException("The user does not exist.");
+        }
+        User actualRenter = userRepository.findById(user_id).get();
+
+        if (bookRepository.findById(book_id).isEmpty()) {
+            throw new ApiRequestException("This book does not exist");
+        }
+        Book actualBook = bookRepository.findById(book_id).get();
+
+        if(rentingRepository.findAll().isEmpty())
+            return null;
+
+        Renting actualRenting;
+        if (findAllOnGoingRentings().stream()
+                .anyMatch(renting ->
+                        renting.getWho_rented().equals(actualRenter)
+                                &&
+                                renting.getBook_rented().equals(actualBook)
+                )) {
+            return actualRenting = findAllOnGoingRentings().stream()
+                    .filter(renting ->
+                            renting.getWho_rented().equals(actualRenter)
+                                    &&
+                                    renting.getBook_rented().equals(actualBook)
+                    ).findFirst().get();
+        }
+
+        return null;
     }
 
     public Renting extendPeriodOfARentedBook(Integer user_id, Integer book_id, Integer period) {

@@ -34,14 +34,13 @@ public class BooksController {
         return bookService.addBook(id, book);
     }
 
-    @PutMapping("/{book_id}/user/{user_id}")
-    public Book BookGetsOwner(@PathVariable Integer book_id, @PathVariable Integer user_id) {
-        return bookService.BookGetsOwner(book_id, user_id);
-    }
-
     @GetMapping("/{book_id}/availability")
     public boolean isThisBookAvailable(@PathVariable Integer book_id) {
         return bookService.isThisBookAvailable(book_id);
+    }
+    @GetMapping("/find_by_title/{title}")
+    public List<Book> findAllByTitle(@PathVariable String title){
+        return bookService.findAllByTitle(title);
     }
 
     @GetMapping("/find_by_title/{title}/or_author/{author}")
@@ -50,13 +49,8 @@ public class BooksController {
         return bookService.findAllByTitleOrAuthor(title,author);
     }
 
-    @GetMapping("/find_by_title/{title}")
-    public List<Book> findAllByTitle(@PathVariable String title){
-        return bookService.findAllByTitle(title);
-    }
-
     @GetMapping("available/find_by_title/{title}/or/{author}")
-    public List<Book> findAllByTitle(@PathVariable String title,
+    public List<Book> findAvailableBooksByTitleOrAuthor(@PathVariable String title,
                                      @PathVariable String author) {
         return bookService.findAvailableBooksByTitleOrAuthor(title, author);
     }
